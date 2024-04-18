@@ -1,0 +1,19 @@
+credentials:
+  usernames:
+    francisco:
+      email: frrgcsocial@gmail.com
+      logged_in: False # Will be managed automatically
+      name: Francisco Rodríguez
+      password: abcDaniro11 # Will be hashed automatically
+    miguel:
+      email: rbriggs@gmail.com
+      logged_in: False # Will be managed automatically
+      name: Miguelr Rodríguez
+      password: def # Will be hashed automatically
+cookie:
+  expiry_days: 30
+  key: claves # Must be string
+  name: agricultura
+preauthorized:
+  emails:
+  - frrgcsocial@gmail.com

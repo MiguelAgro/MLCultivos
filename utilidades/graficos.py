@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-
+import plotly.graph_objects as go
 
 
 def temperaturas(df):
@@ -88,4 +88,100 @@ def mes_minima(dat, mes):
         yaxis_title="Temperatura mínima"
     )
     
+    return fig
+
+def temp_maxima(datos,d1,d2,temp1,temp2):
+    """
+    Con esta función obtengo y represento los días de verano con una tenperatura máxime entre temp1 y temp2
+    """
+    # convierto la columna fecha en formato date
+    datos['fecha'] = datos['fecha'].dt.date
+    df2 =datos[(datos.fecha>=d1) & (datos.fecha<=d2)]
+    df2.reset_index(inplace=True)
+    fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
+              hover_data={"fecha": "|%d %B, %Y"},
+              title='Temperaturas máximas y mínimas')
+    contador = 0
+    for i, row in df2.iterrows():
+        if row["temp_max"]>=temp1 and  row["temp_max"]<=temp2:
+            color='red'
+            contador +=1
+        else:
+            color = "blue"
+        if row["temp_min"]!=row["temp_max"]:
+            fig.add_shape(
+                dict(type="line",
+                    x0=row["fecha"],
+                    x1=row["fecha"],
+                    y0=row["temp_min"],
+                    y1=row["temp_max"],
+                    line=dict(
+                    color=color,
+                    width=2)
+                    )
+            )
+
+    fig.update_xaxes(
+        dtick="M1",
+        tickformat="%b\n%Y")
+
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x")
+    return fig,contador
+
+
+
+def dias_seguidos(dat,d1,d2,temp1,temp2,ndias):
+    """
+    Con esta función localizo los días que tienen de forma consecutiva (ndias) temperaturas entre temp1 y temp2
+    """
+    # convierto la columna fecha en formato date
+    dat['fecha'] = dat['fecha'].dt.date
+    df2 =dat[(dat.fecha>=d1) & (dat.fecha<=d2)]
+    df2.reset_index(inplace=True)
+
+
+    # Inicializo la variable temp_4_contar que cuenta el número de días seguidos con temperatura minima entre las pasadas a la función
+    df2['temp_4_contar']=0
+    # recorremos ahora el dataframe y contamos lo días seguidos con temp_min entre los valores pasados a la función
+    for row in df2.itertuples():
+        if row.temp_min >= temp1 and row.temp_min <= temp2:
+            valor = df2.loc[row.Index-1,'temp_4_contar']+1
+            df2.loc[row.Index,'temp_4_contar']= df2.loc[row.Index-1,'temp_4_contar']+1
+            # si valor supera ndias, pongo el mayor valor de ndias seguidos
+            if valor >= ndias:
+                for h in range(1,df2.loc[row.Index-1,'temp_4_contar']+1):
+                    df2.loc[row.Index-h,'temp_4_contar'] = df2.loc[row.Index-1,'temp_4_contar']+1
+
+    
+    fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
+              hover_data={"fecha": "|%d %B, %Y"},
+              title='Temperaturas máximas y mínimas')
+    
+    for row in df2.itertuples():
+        if row.temp_4_contar>=ndias:
+            color='red'
+            
+        else:
+            color = "blue"
+        if row.temp_min!=row.temp_max:
+            fig.add_shape(
+                dict(type="line",
+                    x0=row.fecha,
+                    x1=row.fecha,
+                    y0=row.temp_min,
+                    y1=row.temp_max,
+                    line=dict(
+                    color=color,
+                    width=2)
+                    )
+            )
+
+    
+    fig.update_xaxes(dtick="M1",tickformat="%b\n%Y")
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x")
+
     return fig

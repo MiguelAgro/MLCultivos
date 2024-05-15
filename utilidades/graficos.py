@@ -104,10 +104,10 @@ def temp_maxima(datos,d1,d2,temp1,temp2):
     contador = 0
     for i, row in df2.iterrows():
         if row["temp_max"]>=temp1 and  row["temp_max"]<=temp2:
-            color='red'
+            color='blue'
             contador +=1
         else:
-            color = "blue"
+            color = "red"
         if row["temp_min"]!=row["temp_max"]:
             fig.add_shape(
                 dict(type="line",

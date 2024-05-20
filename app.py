@@ -4,9 +4,14 @@ import pandas as pd
 import utilidades.graficos as gra
 import utilidades.tablas_datos as dat
 import datetime
+import locale
+
+
 
 # Hecho con entorno 3.9.17 de conda
 # Esto es para poner un título a la web
+locale.getlocale()
+locale.setlocale(locale.LC_TIME, 'es_ES')
 st.set_page_config(
         page_title="Cultivos",
 )

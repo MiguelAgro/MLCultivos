@@ -3,6 +3,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import plotly.graph_objects as go
+import locale
+
+
+locale.setlocale(locale.LC_TIME, 'es_ES')
 
 
 def temperaturas(df):
@@ -99,15 +103,15 @@ def temp_maxima(datos,d1,d2,temp1,temp2):
     df2 =datos[(datos.fecha>=d1) & (datos.fecha<=d2)]
     df2.reset_index(inplace=True)
     fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
-              hover_data={"fecha": "|%d %B, %Y"},
+              hover_data={"fecha": "|%d %m, %y"},
               title='Temperaturas máximas y mínimas')
     contador = 0
     for i, row in df2.iterrows():
         if row["temp_max"]>=temp1 and  row["temp_max"]<=temp2:
-            color='blue'
+            color='red'
             contador +=1
         else:
-            color = "red"
+            color = "blue"
         if row["temp_min"]!=row["temp_max"]:
             fig.add_shape(
                 dict(type="line",
@@ -132,6 +136,7 @@ def temp_maxima(datos,d1,d2,temp1,temp2):
 
 
 
+
 def dias_seguidos(dat,d1,d2,temp1,temp2,ndias):
     """
     Con esta función localizo los días que tienen de forma consecutiva (ndias) temperaturas entre temp1 y temp2
@@ -140,6 +145,8 @@ def dias_seguidos(dat,d1,d2,temp1,temp2,ndias):
     dat['fecha'] = dat['fecha'].dt.date
     df2 =dat[(dat.fecha>=d1) & (dat.fecha<=d2)]
     df2.reset_index(inplace=True)
+    # ver esta transformación en  https://chart-studio.plotly.com/~empet/15517/how-to-display-ticklabels-as-d/#/
+    #newdate = [d.strftime('%d %B, %Y') for d in df2["fecha"]]
 
 
     # Inicializo la variable temp_4_contar que cuenta el número de días seguidos con temperatura minima entre las pasadas a la función
@@ -156,7 +163,8 @@ def dias_seguidos(dat,d1,d2,temp1,temp2,ndias):
 
     
     fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
-              hover_data={"fecha": "|%d %B, %Y"},
+              hover_data={"fecha": "|%d-%m-%y"},
+           
               title='Temperaturas máximas y mínimas')
     
     for row in df2.itertuples():
@@ -179,9 +187,10 @@ def dias_seguidos(dat,d1,d2,temp1,temp2,ndias):
             )
 
     
-    fig.update_xaxes(dtick="M1",tickformat="%b\n%Y")
+    fig.update_xaxes(dtick="M1",tickformat="%d-%m-%y")
     fig.update_xaxes(rangeslider_visible=True)
     fig.update_layout(showlegend=False)
-    fig.update_layout(hovermode="x")
+    fig.update_layout(hovermode="x unified")
+    
 
     return fig

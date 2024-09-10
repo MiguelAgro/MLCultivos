@@ -20,9 +20,9 @@ st.markdown( "# :green[AGROINDUSTRIAL  ASESORES] #"  )
 with st.sidebar:
     st.header("Menú de opciones")
     selected3 = option_menu(None, ["Home", "Temperaturas",  "Precipitaciones","Temperaturas medias" ,'Tablas','boxplot',"heladas",
-                                   "Minimas","Temporada verano","Temporada invierno","Predicción densidad", "Predicción densidad_2"], 
+                                   "Minimas","Temporada verano","Temporada invierno","Predicción densidad"], 
     icons=['house', 'cloud-slash', "list-task", 'brightness-alt-low','table','lightning-fill','asterisk','clouds-fill', "sun",
-           "cloud-hail-fill","bi-bucket-fill" ,"bi-bucket-fill" ], 
+           "cloud-hail-fill","bi-bucket-fill" ], 
     menu_icon="cast", default_index=0, orientation="vertical",
     styles={
         "container": {"padding": "0!important", "background-color": "#fafafa"},
@@ -448,9 +448,8 @@ elif selected3 == "Predicción densidad":
    st.subheader("Predicción densidad futura de Paulonia. ")
    st.write("Se obtienen la estimación del incremento del diámetro de Paulonia fortunei y de Paulonia elongata según el número de años \
             a tener en cuenta.")
-   n_anios = st.number_input("Introduce el número de años: ",min_value=1,max_value=8,value=1)
-   #n_anios2 = 1996+n_anios
-   n_anios2 = 1970+n_anios
+   n_anios = st.number_input("Introduce el número de años: ",min_value=1,value=1)
+   n_anios2 = 1996+n_anios
    idpf = -399778+402.947*n_anios2-0.1015*n_anios2**2
    # Multiplicamos por -1 para cambiar los signos de la ecuación pues de la otra manera no tiene mucho sentido
    idpe = -0.1*(1.56569-1558.75*n_anios+0.3879*n_anios**2)
@@ -460,48 +459,3 @@ elif selected3 == "Predicción densidad":
    if st.session_state.clicked2:
       st.write("El incremento del diámetro para Paulonia fortunei es {}, y para Paulonia elongata es {}".format(round(idpf,3),round(idpe,3)))
       st.session_state.clicked2 = False
-
-elif selected3 == "Predicción densidad_2":
-   
-   if 'clicked1' not in st.session_state:
-      st.session_state.clicked1 = False
-   if 'clicked2' not in st.session_state:
-      st.session_state.clicked2 = False
-   def click_1():
-      st.session_state.clicked1 = True
-   def click_2():
-      st.session_state.clicked2 = True
-
-   st.subheader("Cálculo de la densidad de la Paulonia")
-   st.write("Aquí podemos calcular el valor de la densidad de la Paulonia en base a los resultados del estudio hecho en Navarrés por Nick Merriman, Anders Taeroe, and Karsten Raulund-Rasmussen")
-   
-   diametro = st.number_input("Introduce el valor del diámetro (DBH, en centímetros)",min_value=0.20,value=4.0)
-   densidad = 234.8+ 2.2959*diametro
-   col1, col2, col3 = st.columns(3)
-   with col2:
-      calcular = st.button("Calcular el valor de la densidad ", on_click=click_1)
-      
-   if st.session_state.clicked1:
-      st.write("El valor de la densidad  es {} Kg/m^3, para un diámetro de {} cm".format(round(densidad,2),round(diametro,2)))
-      st.session_state.clicked1 = False
-      
-   st.divider()
-   st.subheader("Predicción a futuro de la densidad de Paulonia")
-   st.write("Con este procedimiento estimamos la densidad de Paulonia, con el número de años dependiendo del tipo de árbol")
-   col1,col2 = st.columns(2)
-   diametro_inicial = col1.number_input("Valor incial del diámetro (DBH, en centímetros)", min_value=0.20,value=4.0)
-   n_anios = col2.number_input("Introduce el número de años: ",min_value=1, max_value=8, value=1)
-   n_anios2 = 1970+n_anios
-   tipo_paulonia =st.selectbox("Indica el tipo de Paulonia",("Fortunei","Otros"),index=None,placeholder="Seleccionar el tipo de Paulonia")
-   if tipo_paulonia == "Fortunei":
-      idpf = -399778+402.947*n_anios2-0.1015*n_anios2**2
-      diametro_final = diametro_inicial+idpf
-      densidad_final = 234.8+ 2.2959*diametro_final
-      st.write("El valor de la densidad final del árbol es: {:5.2f}".format(densidad_final))
-   elif tipo_paulonia == 'Otros':
-      incremento = st.number_input("Incremento del diámetro (en cm) en un año:", min_value=0.3,max_value=10.0,value=0.5,step=0.10)
-      st.write("Se ha considerado una tasa de incremento compuesto a lo largo de los años para calcular la densidad final ")
-      tasa = incremento/diametro_inicial
-      diametro_final=diametro_inicial*(1+tasa)**n_anios
-      densidad_final=234.8+2.2959*diametro_final
-      st.write("El valor de la densidad final del árbol es: {:5.2f}".format(densidad_final))

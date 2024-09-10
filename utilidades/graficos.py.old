@@ -5,44 +5,29 @@ import pandas as pd
 import plotly.graph_objects as go
 
 
-def temperaturas(df,anio):
-    df = df[df.year_fecha==anio]
-    df["amplitud"]=round(df.temp_max-df.temp_min,2)
+def temperaturas(df):
     fig = go.Figure()
-    trace1= px.line(df, x='fecha', y="temp_min", hover_data={"fecha": "|%d-%m-%y","temp_min":True,"amplitud":True})
+    trace1= px.line(df, x='fecha', y="temp_min")
 
-    trace2 = px.line(df, x='fecha', y="temp_max",hover_data={"temp_max":True,"fecha":False})
+    trace2 = px.line(df, x='fecha', y="temp_max")
     trace2.update_traces(line_color='red')
 
     fig.add_trace(trace1.data[0])
     fig.add_trace(trace2.data[0])
-
+    fig.update_xaxes(rangeslider_visible=True)
     fig.update_layout(
-        title=dict(text="Temperaturas máxima y mínima del año: "+str(anio), font=dict(size=25), automargin=True, yref='paper')
+        title=dict(text="Temperaturas máxima y mínima \n", font=dict(size=25), automargin=True, yref='paper')
     )
 
-    fig.update_layout(hovermode="x unified")
-    fig.update_xaxes( dtick="M1",  tickformat="%b\n%Y",rangeslider_visible=True)
-    # Para obtener una descrpción estadística de los datos
-    esta = df.amplitud.describe()
-    return fig, esta
+    return fig
 
-def precipitaciones(df,anio):
-    df = df[df.year_fecha == anio]
-    fig = px.bar(df, x='fecha', y='precipitacion',hover_data={"fecha":"|%d-%m-%y","precipitacion":True},
-                 title= "Precipitaciones observadas en el año "+str(anio))
-    fig.update_xaxes( dtick="M1",  tickformat="%b\n%Y",rangeslider_visible=True)
-    fig.update_traces(marker_color='red', marker_line_color='rgb(8,48,107)')
-
-    # Me quedo con los días que ha llovido
-    df2 =df[df.precipitacion>0]
-    #saco promedios de lluvia caída
-    df3 =  df2.groupby(by=['month_fecha'])[['precipitacion']].agg(['count','sum','mean']).reset_index().\
-        rename(columns={'count':'nº dias','sum':'Total lluvia','mean':'media','month_fecha':'mes'})
-    df3.columns = df3.columns.get_level_values(1)
-    df3.rename(columns={"":'Mes'},inplace=True)
+def precipitaciones(df):
     
-    return fig, df2.precipitacion.describe(),df3
+    fig = px.bar(df, x='fecha', y='precipitacion')
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.update_traces(marker_color='red', marker_line_color='rgb(8,48,107)')
+    
+    return fig
 
 def temp_medias(df):
     df3 = df[['year_fecha', 'month_fecha','temp_min']]
@@ -113,51 +98,40 @@ def temp_maxima(datos,d1,d2,temp1,temp2):
     datos['fecha'] = datos['fecha'].dt.date
     df2 =datos[(datos.fecha>=d1) & (datos.fecha<=d2)]
     df2.reset_index(inplace=True)
-    # fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
-    #           hover_data={"fecha": "|%d %m, %y"},
+    fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
+              hover_data={"fecha": "|%d %m, %y"},
               
-    #           #hover_name="fecha",
-    #           title='Temperaturas máximas y mínimas')
+              #hover_name="fecha",
+              title='Temperaturas máximas y mínimas')
 
-    # contador = 0
-    # for i, row in df2.iterrows():
-    #     if row["temp_max"]>=temp1 and  row["temp_max"]<=temp2:
-    #         color='red'
-    #         contador +=1
-    #     else:
-    #         color = "blue"
-    #     if row["temp_min"]!=row["temp_max"]:
-    #         fig.add_shape(
-    #             dict(type="line",
-    #                 x0=row["fecha"],
-    #                 x1=row["fecha"],
-    #                 y0=row["temp_min"],
-    #                 y1=row["temp_max"],
-    #                 line=dict(
-    #                 color=color,
-    #                 width=2)
-    #                 )
-    #         )
+    contador = 0
+    for i, row in df2.iterrows():
+        if row["temp_max"]>=temp1 and  row["temp_max"]<=temp2:
+            color='red'
+            contador +=1
+        else:
+            color = "blue"
+        if row["temp_min"]!=row["temp_max"]:
+            fig.add_shape(
+                dict(type="line",
+                    x0=row["fecha"],
+                    x1=row["fecha"],
+                    y0=row["temp_min"],
+                    y1=row["temp_max"],
+                    line=dict(
+                    color=color,
+                    width=2)
+                    )
+            )
 
-    # fig.update_xaxes(
-    #     dtick="M1",
-    #     tickformat="%b\n%Y")
+    fig.update_xaxes(
+        dtick="M1",
+        tickformat="%b\n%Y")
 
-    # fig.update_xaxes(rangeslider_visible=True)
-    # fig.update_layout(showlegend=False)
-    # fig.update_layout(hovermode="x unified")
-
-    # Genero la columna estado para indicar los puntos que estan o no entre las temperaturas
-    df2["estado"]=df2.apply(lambda x: "1" if (x.temp_max >=temp1 and x.temp_max<=temp2)  else "0", axis =1)
-    fig = px.scatter(df2, x="fecha", y = 'temp_max', color='estado',color_discrete_sequence=["red","green"],
-                title="Temperaturas máximas en las fechas indicadas",hover_data={"fecha": "|%d %m, %y","temp_min":True,"estado":False,"temp_max":True},)
-    fig.update_xaxes(dtick="M1",tickformat="%b\n%Y",rangeslider_visible=True)
-    fig.layout.showlegend= False
-    fig.update_layout(
-        xaxis_title="Días elegidos",
-        yaxis_title = "temperatura máxima"
-    )
-    contador = pd.to_numeric(df2.estado).sum()
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x unified")
+  
     
     return fig,contador
 
@@ -193,28 +167,38 @@ def dias_seguidos(dat,d1,d2,temp1,temp2,ndias):
                 for h in range(1,int(valor)):
                     df2.loc[row.Index-h,'temp_4_contar'] = valor
 
-    # Genero la columna estado para indicar los puntos que están o no con esos días consecutivos
-    df2["estado"]=df2.apply(lambda x: "1" if x.temp_4_contar >=ndias   else "0", axis =1)
-
-    fig = px.scatter(df2, x="fecha", y="temp_min", color='estado', color_discrete_sequence=["green","red"],
-              title="Días seguidos con temperaturas bajas",hover_data={"fecha": "|%d %m, %y","temp_min":True,"estado":False,"temp_max":True})
+    
+    fig = px.line(df2, x="fecha", y=["temp_min","temp_max"],
+              hover_data={"fecha": "|%d-%m-%y"},
+           
+              title='Temperaturas máximas y mínimas')
     
     #creamos una lista donde guardamos los días seguidos con esas condiciones
     fechas=[]
     for row in df2.itertuples():
         if row.temp_4_contar>=ndias:
+            color='blue'
             fechas.append(row.fecha.strftime("%d-%m-%y"))
-        
-    
+        else:
+            color = "red"
+        if row.temp_min!=row.temp_max:
+            fig.add_shape(
+                dict(type="line",
+                    x0=row.fecha,
+                    x1=row.fecha,
+                    y0=row.temp_min,
+                    y1=row.temp_max,
+                    line=dict(
+                    color=color,
+                    width=2)
+                    )
+            )
 
-    fig.update_xaxes(dtick="M1",tickformat="%b\n%Y",rangeslider_visible=True)
-    fig.layout.showlegend= False
-    fig.update_layout(
-        xaxis_title="Días elegidos",
-        yaxis_title = "temperatura mínima"
-    )
- 
     
+    fig.update_xaxes(dtick="M1",tickformat="%d-%m-%y")
+    fig.update_xaxes(rangeslider_visible=True)
+    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x unified")
     
 
     return fig,fechas
